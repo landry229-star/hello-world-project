@@ -3,13 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, Package, FolderTree, Receipt } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  beforeLoad: async ({ context }) => {
-    const user = (context as any).user;
-    if (!user) throw redirect({ to: "/auth" });
+  ssr: false,
+  beforeLoad: async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw redirect({ to: "/auth" });
     const { data } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", user.id)
+      .eq("user_id", userData.user.id)
       .eq("role", "admin")
       .maybeSingle();
     if (!data) throw redirect({ to: "/compte" });
