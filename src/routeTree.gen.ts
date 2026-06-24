@@ -9,38 +9,250 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PanierRouteImport } from './routes/panier'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as BoutiqueRouteImport } from './routes/boutique'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProduitSlugRouteImport } from './routes/produit.$slug'
+import { Route as AuthenticatedCompteRouteImport } from './routes/_authenticated/compte'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as CommandeIdConfirmationRouteImport } from './routes/commande.$id.confirmation'
+import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authenticated/admin.produits'
+import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
+import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
+import { Route as ApiPublicWebhooksFedapayRouteImport } from './routes/api/public/webhooks/fedapay'
 
+const PanierRoute = PanierRouteImport.update({
+  id: '/panier',
+  path: '/panier',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BoutiqueRoute = BoutiqueRouteImport.update({
+  id: '/boutique',
+  path: '/boutique',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProduitSlugRoute = ProduitSlugRouteImport.update({
+  id: '/produit/$slug',
+  path: '/produit/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedCompteRoute = AuthenticatedCompteRouteImport.update({
+  id: '/compte',
+  path: '/compte',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const CommandeIdConfirmationRoute = CommandeIdConfirmationRouteImport.update({
+  id: '/commande/$id/confirmation',
+  path: '/commande/$id/confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminProduitsRoute =
+  AuthenticatedAdminProduitsRouteImport.update({
+    id: '/produits',
+    path: '/produits',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCommandesRoute =
+  AuthenticatedAdminCommandesRouteImport.update({
+    id: '/commandes',
+    path: '/commandes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCategoriesRoute =
+  AuthenticatedAdminCategoriesRouteImport.update({
+    id: '/categories',
+    path: '/categories',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const ApiPublicWebhooksFedapayRoute =
+  ApiPublicWebhooksFedapayRouteImport.update({
+    id: '/api/public/webhooks/fedapay',
+    path: '/api/public/webhooks/fedapay',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/boutique': typeof BoutiqueRoute
+  '/checkout': typeof CheckoutRoute
+  '/panier': typeof PanierRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/compte': typeof AuthenticatedCompteRoute
+  '/produit/$slug': typeof ProduitSlugRoute
+  '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
+  '/admin/produits': typeof AuthenticatedAdminProduitsRoute
+  '/commande/$id/confirmation': typeof CommandeIdConfirmationRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/api/public/webhooks/fedapay': typeof ApiPublicWebhooksFedapayRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/boutique': typeof BoutiqueRoute
+  '/checkout': typeof CheckoutRoute
+  '/panier': typeof PanierRoute
+  '/compte': typeof AuthenticatedCompteRoute
+  '/produit/$slug': typeof ProduitSlugRoute
+  '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
+  '/admin/produits': typeof AuthenticatedAdminProduitsRoute
+  '/commande/$id/confirmation': typeof CommandeIdConfirmationRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
+  '/api/public/webhooks/fedapay': typeof ApiPublicWebhooksFedapayRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/boutique': typeof BoutiqueRoute
+  '/checkout': typeof CheckoutRoute
+  '/panier': typeof PanierRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/compte': typeof AuthenticatedCompteRoute
+  '/produit/$slug': typeof ProduitSlugRoute
+  '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
+  '/_authenticated/admin/produits': typeof AuthenticatedAdminProduitsRoute
+  '/commande/$id/confirmation': typeof CommandeIdConfirmationRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/api/public/webhooks/fedapay': typeof ApiPublicWebhooksFedapayRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/boutique'
+    | '/checkout'
+    | '/panier'
+    | '/admin'
+    | '/compte'
+    | '/produit/$slug'
+    | '/admin/categories'
+    | '/admin/commandes'
+    | '/admin/produits'
+    | '/commande/$id/confirmation'
+    | '/admin/'
+    | '/api/public/webhooks/fedapay'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/boutique'
+    | '/checkout'
+    | '/panier'
+    | '/compte'
+    | '/produit/$slug'
+    | '/admin/categories'
+    | '/admin/commandes'
+    | '/admin/produits'
+    | '/commande/$id/confirmation'
+    | '/admin'
+    | '/api/public/webhooks/fedapay'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/boutique'
+    | '/checkout'
+    | '/panier'
+    | '/_authenticated/admin'
+    | '/_authenticated/compte'
+    | '/produit/$slug'
+    | '/_authenticated/admin/categories'
+    | '/_authenticated/admin/commandes'
+    | '/_authenticated/admin/produits'
+    | '/commande/$id/confirmation'
+    | '/_authenticated/admin/'
+    | '/api/public/webhooks/fedapay'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  BoutiqueRoute: typeof BoutiqueRoute
+  CheckoutRoute: typeof CheckoutRoute
+  PanierRoute: typeof PanierRoute
+  ProduitSlugRoute: typeof ProduitSlugRoute
+  CommandeIdConfirmationRoute: typeof CommandeIdConfirmationRoute
+  ApiPublicWebhooksFedapayRoute: typeof ApiPublicWebhooksFedapayRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/panier': {
+      id: '/panier'
+      path: '/panier'
+      fullPath: '/panier'
+      preLoaderRoute: typeof PanierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/boutique': {
+      id: '/boutique'
+      path: '/boutique'
+      fullPath: '/boutique'
+      preLoaderRoute: typeof BoutiqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +260,113 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/produit/$slug': {
+      id: '/produit/$slug'
+      path: '/produit/$slug'
+      fullPath: '/produit/$slug'
+      preLoaderRoute: typeof ProduitSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/compte': {
+      id: '/_authenticated/compte'
+      path: '/compte'
+      fullPath: '/compte'
+      preLoaderRoute: typeof AuthenticatedCompteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/commande/$id/confirmation': {
+      id: '/commande/$id/confirmation'
+      path: '/commande/$id/confirmation'
+      fullPath: '/commande/$id/confirmation'
+      preLoaderRoute: typeof CommandeIdConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/produits': {
+      id: '/_authenticated/admin/produits'
+      path: '/produits'
+      fullPath: '/admin/produits'
+      preLoaderRoute: typeof AuthenticatedAdminProduitsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/commandes': {
+      id: '/_authenticated/admin/commandes'
+      path: '/commandes'
+      fullPath: '/admin/commandes'
+      preLoaderRoute: typeof AuthenticatedAdminCommandesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/categories': {
+      id: '/_authenticated/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AuthenticatedAdminCategoriesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/webhooks/fedapay': {
+      id: '/api/public/webhooks/fedapay'
+      path: '/api/public/webhooks/fedapay'
+      fullPath: '/api/public/webhooks/fedapay'
+      preLoaderRoute: typeof ApiPublicWebhooksFedapayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
+  AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
+  AuthenticatedAdminProduitsRoute: typeof AuthenticatedAdminProduitsRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
+  AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
+  AuthenticatedAdminProduitsRoute: AuthenticatedAdminProduitsRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedCompteRoute: typeof AuthenticatedCompteRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedCompteRoute: AuthenticatedCompteRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  BoutiqueRoute: BoutiqueRoute,
+  CheckoutRoute: CheckoutRoute,
+  PanierRoute: PanierRoute,
+  ProduitSlugRoute: ProduitSlugRoute,
+  CommandeIdConfirmationRoute: CommandeIdConfirmationRoute,
+  ApiPublicWebhooksFedapayRoute: ApiPublicWebhooksFedapayRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
