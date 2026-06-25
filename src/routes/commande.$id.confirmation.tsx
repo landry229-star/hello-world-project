@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock, XCircle, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/commande/$id/confirmation")({
-  head: () => ({ meta: [{ title: "Confirmation de commande — YovoShop" }] }),
+  head: () => ({ meta: [{ title: "Confirmation de commande — LandryShop" }] }),
   component: ConfirmationPage,
 });
 

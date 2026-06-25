@@ -31,9 +31,9 @@ export const Route = createFileRoute("/boutique")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Boutique — YovoShop" },
+      { title: "Boutique — LandryShop" },
       { name: "description", content: "Parcourez tout notre catalogue de produits physiques et numériques." },
-      { property: "og:title", content: "Boutique — YovoShop" },
+      { property: "og:title", content: "Boutique — LandryShop" },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(boutiqueQuery),

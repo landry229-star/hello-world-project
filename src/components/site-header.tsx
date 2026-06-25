@@ -42,7 +42,7 @@ export function SiteHeader() {
             <ShoppingBag className="h-5 w-5" />
           </div>
           <span className="font-display text-lg font-bold tracking-tight">
-            Yovo<span className="text-accent">Shop</span>
+            Landry<span className="text-accent">Shop</span>
           </span>
         </Link>
 
