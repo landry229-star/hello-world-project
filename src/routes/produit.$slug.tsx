@@ -32,13 +32,13 @@ export const Route = createFileRoute("/produit/$slug")({
   head: ({ loaderData }) => ({
     meta: loaderData
       ? [
-          { title: `${loaderData.name} — YovoShop` },
+          { title: `${loaderData.name} — LandryShop` },
           { name: "description", content: (loaderData.description ?? "").slice(0, 160) || `Acheter ${loaderData.name} en ligne au Bénin.` },
           { property: "og:title", content: loaderData.name },
           { property: "og:description", content: (loaderData.description ?? "").slice(0, 160) },
           ...(loaderData.image_url ? [{ property: "og:image", content: loaderData.image_url }] : []),
         ]
-      : [{ title: "Produit — YovoShop" }],
+      : [{ title: "Produit — LandryShop" }],
   }),
   notFoundComponent: () => (
     <div className="mx-auto max-w-md px-4 py-20 text-center">

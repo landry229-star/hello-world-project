@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Connexion — YovoShop" }] }),
+  head: () => ({ meta: [{ title: "Connexion — LandryShop" }] }),
   component: AuthPage,
 });
 
@@ -68,7 +68,7 @@ function AuthPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-10">
       <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-        <h1 className="font-display text-2xl font-bold">Bienvenue chez YovoShop</h1>
+        <h1 className="font-display text-2xl font-bold">Bienvenue chez LandryShop</h1>
         <p className="mt-1 text-sm text-muted-foreground">Connectez-vous pour commander.</p>
 
         <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup")} className="mt-5">

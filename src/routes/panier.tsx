@@ -5,7 +5,7 @@ import { formatFCFA } from "@/lib/format";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 
 export const Route = createFileRoute("/panier")({
-  head: () => ({ meta: [{ title: "Mon panier — YovoShop" }] }),
+  head: () => ({ meta: [{ title: "Mon panier — LandryShop" }] }),
   component: CartPage,
 });
 

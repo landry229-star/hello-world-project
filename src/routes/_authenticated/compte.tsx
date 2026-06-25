@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/compte")({
-  head: () => ({ meta: [{ title: "Mon compte — YovoShop" }] }),
+  head: () => ({ meta: [{ title: "Mon compte — LandryShop" }] }),
   component: AccountPage,
 });
 

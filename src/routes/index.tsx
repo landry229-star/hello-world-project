@@ -25,9 +25,9 @@ const homeQuery = queryOptions({
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "YovoShop — Boutique en ligne au Bénin" },
+      { title: "LandryShop — Boutique en ligne au Bénin" },
       { name: "description", content: "Mode, artisanat, produits numériques. Paiement Mobile Money MTN et Moov. Livraison à Cotonou et partout au Bénin." },
-      { property: "og:title", content: "YovoShop — Boutique Bénin" },
+      { property: "og:title", content: "LandryShop — Boutique Bénin" },
       { property: "og:description", content: "Achetez en ligne au Bénin avec paiement Mobile Money." },
     ],
   }),
