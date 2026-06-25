@@ -101,8 +101,13 @@ function ProductsAdmin() {
         const path = `${crypto.randomUUID()}-${imageFile.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
         const { error } = await supabase.storage.from("product-images").upload(path, imageFile, { upsert: false });
         if (error) throw error;
-        const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
-        image_url = pub.publicUrl;
+        // Le bucket est privé (politique workspace) : on génère une URL signée longue durée
+        // qui reste accessible publiquement sans authentification.
+        const { data: signed, error: signErr } = await supabase.storage
+          .from("product-images")
+          .createSignedUrl(path, 60 * 60 * 24 * 365 * 5); // 5 ans
+        if (signErr || !signed) throw signErr ?? new Error("URL image indisponible");
+        image_url = signed.signedUrl;
       }
 
       if (digitalFile && form.type === "digital") {
