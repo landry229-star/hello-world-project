@@ -123,3 +123,51 @@ export const getDigitalDownload = createServerFn({ method: "POST" })
     if (signErr || !signed) throw new Error("Lien de téléchargement indisponible");
     return { url: signed.signedUrl };
   });
+
+/**
+ * Interroge FedaPay pour récupérer le statut réel de la transaction
+ * associée à une commande et synchronise la BDD. Utilisé par le
+ * bouton "Vérifier le paiement" sur la page de confirmation, au cas
+ * où le webhook n'aurait pas (encore) été reçu.
+ */
+export const verifyPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ orderId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: order, error } = await supabase
+      .from("orders")
+      .select("id, status, payment_reference, user_id")
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!order || order.user_id !== userId) throw new Error("Commande introuvable");
+    if (order.status !== "pending") return { status: order.status };
+    if (!order.payment_reference || order.payment_reference.startsWith("DEMO-")) {
+      return { status: order.status };
+    }
+
+    const secret = process.env.FEDAPAY_SECRET_KEY;
+    if (!secret) return { status: order.status };
+    const apiBase = process.env.FEDAPAY_ENV === "live"
+      ? "https://api.fedapay.com/v1"
+      : "https://sandbox-api.fedapay.com/v1";
+
+    const res = await fetch(`${apiBase}/transactions/${order.payment_reference}`, {
+      headers: { Authorization: `Bearer ${secret}` },
+    });
+    if (!res.ok) throw new Error("Vérification FedaPay impossible");
+    const payload = (await res.json()) as { "v1/transaction"?: { status?: string } };
+    const txStatus = payload["v1/transaction"]?.status;
+
+    let newStatus: "paid" | "failed" | null = null;
+    if (txStatus === "approved" || txStatus === "transferred") newStatus = "paid";
+    else if (txStatus === "declined" || txStatus === "canceled") newStatus = "failed";
+
+    if (newStatus) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.from("orders").update({ status: newStatus }).eq("id", order.id);
+      return { status: newStatus };
+    }
+    return { status: order.status };
+  });

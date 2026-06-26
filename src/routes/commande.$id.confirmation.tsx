@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { getOrder } from "@/lib/orders.functions";
+import { verifyPayment } from "@/lib/payments.functions";
 import { formatFCFA } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Loader2, Receipt, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/commande/$id/confirmation")({
   head: () => ({ meta: [{ title: "Confirmation de commande — LandryShop" }] }),
@@ -15,6 +17,7 @@ export const Route = createFileRoute("/commande/$id/confirmation")({
 function ConfirmationPage() {
   const { id } = Route.useParams();
   const getOrderFn = useServerFn(getOrder);
+  const verifyFn = useServerFn(verifyPayment);
   const { data: order, isLoading, error, refetch } = useQuery({
     queryKey: ["order", id],
     queryFn: () => getOrderFn({ data: { id } }),
@@ -22,6 +25,16 @@ function ConfirmationPage() {
       const o: any = q.state.data;
       return o && o.status === "pending" ? 4000 : false;
     },
+  });
+  const verifyMutation = useMutation({
+    mutationFn: () => verifyFn({ data: { orderId: id } }),
+    onSuccess: (r) => {
+      if (r.status === "paid") toast.success("Paiement confirmé !");
+      else if (r.status === "failed") toast.error("Paiement échoué.");
+      else toast.info("Paiement toujours en attente.");
+      refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   if (isLoading) {
@@ -89,8 +102,26 @@ function ConfirmationPage() {
       <div className="mt-6 flex flex-wrap gap-2">
         <Button asChild className="rounded-full"><Link to="/compte">Mes commandes</Link></Button>
         <Button asChild variant="outline" className="rounded-full"><Link to="/boutique">Continuer mes achats</Link></Button>
+        {isPaid && (
+          <Button asChild variant="outline" className="rounded-full">
+            <Link to="/commande/$id/recu" params={{ id }}>
+              <Receipt className="mr-1 h-3 w-3" /> Voir le reçu
+            </Link>
+          </Button>
+        )}
         {order.status === "pending" && (
-          <Button variant="ghost" onClick={() => refetch()}>Actualiser</Button>
+          <Button
+            variant="ghost"
+            onClick={() => verifyMutation.mutate()}
+            disabled={verifyMutation.isPending}
+          >
+            {verifyMutation.isPending ? (
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-1 h-3 w-3" />
+            )}
+            Vérifier le paiement
+          </Button>
         )}
       </div>
     </div>
