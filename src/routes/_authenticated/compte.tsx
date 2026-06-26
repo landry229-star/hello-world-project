@@ -7,7 +7,7 @@ import { bootstrapAdmin } from "@/lib/admin.functions";
 import { formatFCFA } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, Package, Loader2 } from "lucide-react";
+import { Download, Package, Loader2, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -95,6 +95,13 @@ function AccountPage() {
                   </li>
                 ))}
               </ul>
+              <div className="mt-3 flex justify-end">
+                <Button asChild size="sm" variant="outline" className="rounded-full">
+                  <Link to="/commande/$id/recu" params={{ id: o.id }}>
+                    <Receipt className="mr-1 h-3 w-3" /> Reçu
+                  </Link>
+                </Button>
+              </div>
             </li>
           ))}
         </ul>
