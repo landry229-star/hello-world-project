@@ -160,7 +160,7 @@ export const verifyPayment = createServerFn({ method: "POST" })
     const payload = (await res.json()) as { "v1/transaction"?: { status?: string } };
     const txStatus = payload["v1/transaction"]?.status;
 
-    let newStatus: string | null = null;
+    let newStatus: "paid" | "failed" | null = null;
     if (txStatus === "approved" || txStatus === "transferred") newStatus = "paid";
     else if (txStatus === "declined" || txStatus === "canceled") newStatus = "failed";
 
