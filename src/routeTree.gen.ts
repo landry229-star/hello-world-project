@@ -19,6 +19,7 @@ import { Route as ProduitSlugRouteImport } from './routes/produit.$slug'
 import { Route as AuthenticatedCompteRouteImport } from './routes/_authenticated/compte'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as CommandeIdRecuRouteImport } from './routes/commande.$id.recu'
 import { Route as CommandeIdConfirmationRouteImport } from './routes/commande.$id.confirmation'
 import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authenticated/admin.produits'
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
@@ -74,6 +75,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const CommandeIdRecuRoute = CommandeIdRecuRouteImport.update({
+  id: '/commande/$id/recu',
+  path: '/commande/$id/recu',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommandeIdConfirmationRoute = CommandeIdConfirmationRouteImport.update({
   id: '/commande/$id/confirmation',
   path: '/commande/$id/confirmation',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/commande/$id/confirmation': typeof CommandeIdConfirmationRoute
+  '/commande/$id/recu': typeof CommandeIdRecuRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/webhooks/fedapay': typeof ApiPublicWebhooksFedapayRoute
 }
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/commande/$id/confirmation': typeof CommandeIdConfirmationRoute
+  '/commande/$id/recu': typeof CommandeIdRecuRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/webhooks/fedapay': typeof ApiPublicWebhooksFedapayRoute
 }
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/_authenticated/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/commande/$id/confirmation': typeof CommandeIdConfirmationRoute
+  '/commande/$id/recu': typeof CommandeIdRecuRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/webhooks/fedapay': typeof ApiPublicWebhooksFedapayRoute
 }
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/admin/commandes'
     | '/admin/produits'
     | '/commande/$id/confirmation'
+    | '/commande/$id/recu'
     | '/admin/'
     | '/api/public/webhooks/fedapay'
   fileRoutesByTo: FileRoutesByTo
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/admin/commandes'
     | '/admin/produits'
     | '/commande/$id/confirmation'
+    | '/commande/$id/recu'
     | '/admin'
     | '/api/public/webhooks/fedapay'
   id:
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/commandes'
     | '/_authenticated/admin/produits'
     | '/commande/$id/confirmation'
+    | '/commande/$id/recu'
     | '/_authenticated/admin/'
     | '/api/public/webhooks/fedapay'
   fileRoutesById: FileRoutesById
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   PanierRoute: typeof PanierRoute
   ProduitSlugRoute: typeof ProduitSlugRoute
   CommandeIdConfirmationRoute: typeof CommandeIdConfirmationRoute
+  CommandeIdRecuRoute: typeof CommandeIdRecuRoute
   ApiPublicWebhooksFedapayRoute: typeof ApiPublicWebhooksFedapayRoute
 }
 
@@ -287,6 +300,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/commande/$id/recu': {
+      id: '/commande/$id/recu'
+      path: '/commande/$id/recu'
+      fullPath: '/commande/$id/recu'
+      preLoaderRoute: typeof CommandeIdRecuRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/commande/$id/confirmation': {
       id: '/commande/$id/confirmation'
@@ -365,6 +385,7 @@ const rootRouteChildren: RootRouteChildren = {
   PanierRoute: PanierRoute,
   ProduitSlugRoute: ProduitSlugRoute,
   CommandeIdConfirmationRoute: CommandeIdConfirmationRoute,
+  CommandeIdRecuRoute: CommandeIdRecuRoute,
   ApiPublicWebhooksFedapayRoute: ApiPublicWebhooksFedapayRoute,
 }
 export const routeTree = rootRouteImport
