@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Package, FolderTree, Receipt } from "lucide-react";
+import { LayoutDashboard, Package, FolderTree, Receipt, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -20,16 +20,28 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 function AdminLayout() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
-      <div className="flex flex-wrap items-center gap-2 border-b border-border pb-4">
-        <h1 className="mr-4 font-display text-2xl font-bold">Administration</h1>
-        <NavLink to="/admin" icon={LayoutDashboard} label="Dashboard" exact />
-        <NavLink to="/admin/produits" icon={Package} label="Produits" />
-        <NavLink to="/admin/categories" icon={FolderTree} label="Catégories" />
-        <NavLink to="/admin/commandes" icon={Receipt} label="Commandes" />
-      </div>
-      <div className="mt-6">
-        <Outlet />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="mx-auto max-w-7xl px-4 py-6 md:py-10">
+        <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-border bg-card/80 p-5 shadow-sm backdrop-blur md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Espace sécurisé</p>
+              <h1 className="font-display text-2xl font-bold leading-tight">Console d'administration</h1>
+            </div>
+          </div>
+          <nav className="flex flex-wrap gap-2">
+            <NavLink to="/admin" icon={LayoutDashboard} label="Tableau de bord" exact />
+            <NavLink to="/admin/produits" icon={Package} label="Produits" />
+            <NavLink to="/admin/categories" icon={FolderTree} label="Catégories" />
+            <NavLink to="/admin/commandes" icon={Receipt} label="Commandes" />
+          </nav>
+        </div>
+        <div>
+          <Outlet />
+        </div>
       </div>
     </div>
   );
@@ -39,8 +51,8 @@ function NavLink({ to, icon: Icon, label, exact }: { to: string; icon: any; labe
   return (
     <Link
       to={to}
-      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-      activeProps={{ className: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" }}
+      className="flex items-center gap-1.5 rounded-full border border-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-all hover:border-border hover:bg-muted hover:text-foreground"
+      activeProps={{ className: "border-primary/30 bg-primary text-primary-foreground shadow-sm hover:bg-primary hover:text-primary-foreground" }}
       activeOptions={{ exact }}
     >
       <Icon className="h-4 w-4" /> {label}
