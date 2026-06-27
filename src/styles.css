@@ -142,3 +142,18 @@
     letter-spacing: -0.01em;
   }
 }
+
+@media print {
+  body * { visibility: hidden !important; }
+  #print-area, #print-area * { visibility: visible !important; }
+  #print-area {
+    position: absolute !important;
+    inset: 0 !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    color: #000 !important;
+  }
+  @page { margin: 12mm; size: A4; }
+}

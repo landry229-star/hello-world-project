@@ -1,9 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminListOrders, adminUpdateOrderStatus } from "@/lib/admin.functions";
 import { formatFCFA } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Receipt } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
@@ -45,12 +47,19 @@ function OrdersAdmin() {
             <div className="text-right">
               <Badge>{o.payment_operator?.toUpperCase() ?? "—"}</Badge>
               <p className="mt-1 font-display text-lg font-bold">{formatFCFA(o.total_xof)}</p>
-              <Select value={o.status} onValueChange={(v) => updateMutation.mutate({ id: o.id, status: v as any })}>
-                <SelectTrigger className="mt-1 w-40"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <div className="mt-1 flex items-center justify-end gap-2">
+                <Button asChild variant="outline" size="sm" className="rounded-full">
+                  <Link to="/commande/$id/recu" params={{ id: o.id }}>
+                    <Receipt className="mr-1 h-3 w-3" /> Reçu
+                  </Link>
+                </Button>
+                <Select value={o.status} onValueChange={(v) => updateMutation.mutate({ id: o.id, status: v as any })}>
+                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <ul className="mt-3 space-y-1 text-sm">

@@ -60,7 +60,7 @@ function ReceiptPage() {
         </Button>
       </div>
 
-      <div className="rounded-3xl border border-border bg-card p-8 print:border-0 print:p-0">
+      <div id="print-area" className="rounded-3xl border border-border bg-card p-8 print:border-0 print:p-0">
         <div className="flex items-start justify-between border-b border-border pb-4">
           <div>
             <h1 className="font-display text-2xl font-bold">LandryShop</h1>
