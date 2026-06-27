@@ -100,7 +100,7 @@ function ConfirmationPage() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        <Button asChild className="rounded-full"><Link to="/compte">Mes commandes</Link></Button>
+        <Button asChild className="rounded-full"><Link to="/compte">Retour à mon espace</Link></Button>
         <Button asChild variant="outline" className="rounded-full"><Link to="/boutique">Continuer mes achats</Link></Button>
         {isPaid && (
           <Button asChild variant="outline" className="rounded-full">
