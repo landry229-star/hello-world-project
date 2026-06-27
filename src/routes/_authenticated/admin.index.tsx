@@ -76,6 +76,3 @@ function QuickLink({ to, title, desc, icon: Icon }: { to: string; title: string;
     </Link>
   );
 }
-    </div>
-  );
-}
