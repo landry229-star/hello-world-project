@@ -24,6 +24,7 @@ import { Route as CommandeIdConfirmationRouteImport } from './routes/commande.$i
 import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authenticated/admin.produits'
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
+import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin.audit'
 import { Route as ApiPublicWebhooksFedapayRouteImport } from './routes/api/public/webhooks/fedapay'
 
 const PanierRoute = PanierRouteImport.update({
@@ -103,6 +104,11 @@ const AuthenticatedAdminCategoriesRoute =
     path: '/categories',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const ApiPublicWebhooksFedapayRoute =
   ApiPublicWebhooksFedapayRouteImport.update({
     id: '/api/public/webhooks/fedapay',
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/compte': typeof AuthenticatedCompteRoute
   '/produit/$slug': typeof ProduitSlugRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/panier': typeof PanierRoute
   '/compte': typeof AuthenticatedCompteRoute
   '/produit/$slug': typeof ProduitSlugRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/compte': typeof AuthenticatedCompteRoute
   '/produit/$slug': typeof ProduitSlugRoute
+  '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/_authenticated/admin/produits': typeof AuthenticatedAdminProduitsRoute
@@ -173,6 +182,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/compte'
     | '/produit/$slug'
+    | '/admin/audit'
     | '/admin/categories'
     | '/admin/commandes'
     | '/admin/produits'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/panier'
     | '/compte'
     | '/produit/$slug'
+    | '/admin/audit'
     | '/admin/categories'
     | '/admin/commandes'
     | '/admin/produits'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/compte'
     | '/produit/$slug'
+    | '/_authenticated/admin/audit'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/commandes'
     | '/_authenticated/admin/produits'
@@ -336,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCategoriesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/audit': {
+      id: '/_authenticated/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/webhooks/fedapay': {
       id: '/api/public/webhooks/fedapay'
       path: '/api/public/webhooks/fedapay'
@@ -347,6 +366,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
   AuthenticatedAdminProduitsRoute: typeof AuthenticatedAdminProduitsRoute
@@ -354,6 +374,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
   AuthenticatedAdminProduitsRoute: AuthenticatedAdminProduitsRoute,
