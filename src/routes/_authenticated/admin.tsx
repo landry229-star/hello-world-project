@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Package, FolderTree, Receipt, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Package, FolderTree, Receipt, ShieldCheck, ShieldAlert } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -37,6 +37,7 @@ function AdminLayout() {
             <NavLink to="/admin/produits" icon={Package} label="Produits" />
             <NavLink to="/admin/categories" icon={FolderTree} label="Catégories" />
             <NavLink to="/admin/commandes" icon={Receipt} label="Commandes" />
+            <NavLink to="/admin/audit" icon={ShieldAlert} label="Audit" />
           </nav>
         </div>
         <div>
