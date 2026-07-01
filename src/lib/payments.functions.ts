@@ -3,6 +3,39 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
+ * Enregistre la référence de transaction Mobile Money saisie par le client
+ * après un paiement manuel (envoi vers le numéro marchand). La commande
+ * reste en `pending` jusqu'à validation manuelle par l'admin depuis
+ * /admin/commandes.
+ */
+export const submitPaymentProof = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        orderId: z.string().uuid(),
+        transactionRef: z.string().trim().min(3).max(60),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: order, error } = await supabase
+      .from("orders")
+      .select("id, user_id, status")
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!order || order.user_id !== userId) throw new Error("Commande introuvable");
+    const { error: upErr } = await supabase
+      .from("orders")
+      .update({ payment_reference: data.transactionRef })
+      .eq("id", order.id);
+    if (upErr) throw new Error(upErr.message);
+    return { ok: true };
+  });
+
+/**
  * Initialise un paiement Mobile Money via FedaPay (agrégateur béninois).
  * Si FEDAPAY_SECRET_KEY n'est pas configurée, on bascule en "mode démo"
  * qui marque la commande comme payée immédiatement (utile pour tester

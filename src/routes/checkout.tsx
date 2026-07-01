@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { createOrder } from "@/lib/orders.functions";
-import { initPayment } from "@/lib/payments.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -47,7 +46,6 @@ function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createOrderFn = useServerFn(createOrder);
-  const initPaymentFn = useServerFn(initPayment);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -77,17 +75,11 @@ function CheckoutPage() {
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
         },
       });
-      const returnUrl = `${window.location.origin}/commande/${orderId}/confirmation`;
-      const result = await initPaymentFn({ data: { orderId, returnUrl } });
-      return { orderId, ...result };
+      return { orderId };
     },
     onSuccess: (result) => {
       clear();
-      if (result.mode === "redirect") {
-        window.location.href = result.redirectUrl;
-      } else {
-        router.navigate({ to: "/commande/$id/confirmation", params: { id: result.orderId } });
-      }
+      router.navigate({ to: "/commande/$id/confirmation", params: { id: result.orderId } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -195,10 +187,10 @@ function CheckoutPage() {
             </div>
             <Button type="submit" size="lg" className="mt-4 w-full rounded-full" disabled={mutation.isPending}>
               {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Payer maintenant
+              Valider la commande
             </Button>
             <p className="mt-2 text-center text-xs text-muted-foreground">
-              Paiement sécurisé via FedaPay
+              Instructions de paiement Mobile Money à l'étape suivante
             </p>
           </div>
         </aside>
