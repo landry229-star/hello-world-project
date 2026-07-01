@@ -1,13 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { getOrder } from "@/lib/orders.functions";
-import { verifyPayment } from "@/lib/payments.functions";
+import { submitPaymentProof } from "@/lib/payments.functions";
 import { formatFCFA } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, XCircle, Loader2, Receipt, RefreshCw } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Loader2, Receipt, Copy, Smartphone } from "lucide-react";
 import { toast } from "sonner";
+import { MERCHANT_ACCOUNTS, type Operator } from "@/lib/payment-config";
 
 export const Route = createFileRoute("/commande/$id/confirmation")({
   head: () => ({ meta: [{ title: "Confirmation de commande — LandryShop" }] }),
@@ -17,23 +21,19 @@ export const Route = createFileRoute("/commande/$id/confirmation")({
 function ConfirmationPage() {
   const { id } = Route.useParams();
   const getOrderFn = useServerFn(getOrder);
-  const verifyFn = useServerFn(verifyPayment);
+  const submitProofFn = useServerFn(submitPaymentProof);
+  const [txRef, setTxRef] = useState("");
   const { data: order, isLoading, error, refetch } = useQuery({
     queryKey: ["order", id],
     queryFn: () => getOrderFn({ data: { id } }),
     refetchInterval: (q) => {
       const o: any = q.state.data;
-      return o && o.status === "pending" ? 4000 : false;
+      return o && o.status === "pending" ? 10000 : false;
     },
   });
-  const verifyMutation = useMutation({
-    mutationFn: () => verifyFn({ data: { orderId: id } }),
-    onSuccess: (r) => {
-      if (r.status === "paid") toast.success("Paiement confirmé !");
-      else if (r.status === "failed") toast.error("Paiement échoué.");
-      else toast.info("Paiement toujours en attente.");
-      refetch();
-    },
+  const submitMutation = useMutation({
+    mutationFn: () => submitProofFn({ data: { orderId: id, transactionRef: txRef } }),
+    onSuccess: () => { toast.success("Référence envoyée. Nous validons votre paiement sous peu."); refetch(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -55,6 +55,11 @@ function ConfirmationPage() {
 
   const isPaid = order.status === "paid" || order.status === "delivered" || order.status === "shipped" || order.status === "preparing";
   const isFailed = order.status === "failed" || order.status === "cancelled";
+  const operator = (order.payment_operator ?? "mtn") as Operator;
+  const account = MERCHANT_ACCOUNTS[operator];
+  const copy = (v: string, label: string) => {
+    navigator.clipboard?.writeText(v).then(() => toast.success(`${label} copié`));
+  };
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -74,12 +79,71 @@ function ConfirmationPage() {
             ? "Merci pour votre achat. Vous recevrez bientôt des nouvelles."
             : isFailed
               ? "Le paiement n'a pas abouti. Vous pouvez réessayer depuis votre compte."
-              : "Confirmez le paiement sur votre téléphone Mobile Money. Cette page se met à jour automatiquement."}
+              : "Suivez les instructions ci-dessous pour effectuer le paiement Mobile Money."}
         </p>
         <p className="mt-4 text-xs text-muted-foreground">
           Référence : <span className="font-mono">{order.id.slice(0, 8).toUpperCase()}</span>
         </p>
       </div>
+
+      {!isPaid && !isFailed && (
+        <div className="mt-6 rounded-2xl border-2 border-primary/30 bg-primary/5 p-5">
+          <div className="flex items-center gap-2">
+            <Smartphone className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg font-semibold">Instructions {account.label}</h2>
+          </div>
+          <ol className="mt-3 space-y-3 text-sm">
+            <li>
+              <span className="font-medium">1. Composez</span> <span className="font-mono">{account.ussd}</span> sur votre téléphone et choisissez « Transfert d'argent ».
+            </li>
+            <li>
+              <span className="font-medium">2. Envoyez</span> le montant exact au numéro marchand :
+              <div className="mt-2 grid gap-2 rounded-xl border border-border bg-card p-3">
+                <Row label="Numéro" value={account.number} onCopy={() => copy(account.number, "Numéro")} />
+                <Row label="Nom" value={account.holder} onCopy={() => copy(account.holder, "Nom")} />
+                <Row
+                  label="Montant"
+                  value={formatFCFA(order.total_xof)}
+                  onCopy={() => copy(String(order.total_xof), "Montant")}
+                />
+                <Row
+                  label="Motif"
+                  value={order.id.slice(0, 8).toUpperCase()}
+                  onCopy={() => copy(order.id.slice(0, 8).toUpperCase(), "Motif")}
+                />
+              </div>
+            </li>
+            <li>
+              <span className="font-medium">3. Saisissez</span> l'ID de transaction (SMS de confirmation) ci-dessous. Nous validerons manuellement votre paiement.
+            </li>
+          </ol>
+
+          <div className="mt-4 space-y-2">
+            <Label htmlFor="tx-ref" className="text-xs">ID de transaction Mobile Money</Label>
+            <div className="flex gap-2">
+              <Input
+                id="tx-ref"
+                placeholder="Ex : 1234567890"
+                value={txRef}
+                onChange={(e) => setTxRef(e.target.value)}
+              />
+              <Button
+                onClick={() => submitMutation.mutate()}
+                disabled={submitMutation.isPending || txRef.trim().length < 3}
+                className="rounded-full"
+              >
+                {submitMutation.isPending && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                Envoyer
+              </Button>
+            </div>
+            {order.payment_reference && (
+              <p className="text-xs text-muted-foreground">
+                Référence envoyée : <span className="font-mono">{order.payment_reference}</span> — en attente de validation.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 rounded-2xl border border-border bg-card p-4">
         <div className="flex items-center justify-between">
@@ -109,20 +173,25 @@ function ConfirmationPage() {
             </Link>
           </Button>
         )}
-        {order.status === "pending" && (
-          <Button
-            variant="ghost"
-            onClick={() => verifyMutation.mutate()}
-            disabled={verifyMutation.isPending}
-          >
-            {verifyMutation.isPending ? (
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-            ) : (
-              <RefreshCw className="mr-1 h-3 w-3" />
-            )}
-            Vérifier le paiement
-          </Button>
-        )}
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value, onCopy }: { label: string; value: string; onCopy: () => void }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-sm font-medium">{value}</span>
+        <button
+          type="button"
+          onClick={onCopy}
+          className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          aria-label={`Copier ${label}`}
+        >
+          <Copy className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );
