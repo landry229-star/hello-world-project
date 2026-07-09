@@ -1,5 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { ShoppingBag, User as UserIcon, Menu, LogOut, LayoutDashboard, X } from "lucide-react";
+import { ShoppingBag, User as UserIcon, Menu, LogOut, X } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/lib/cart-store";
 import { useAuth } from "@/hooks/use-auth";
@@ -85,11 +85,6 @@ export function SiteHeader() {
                 <DropdownMenuItem onClick={() => router.navigate({ to: "/compte" })}>
                   <UserIcon className="mr-2 h-4 w-4" /> Mon compte
                 </DropdownMenuItem>
-                {isAdmin && (
-                  <DropdownMenuItem onClick={() => router.navigate({ to: "/admin" })}>
-                    <LayoutDashboard className="mr-2 h-4 w-4" /> Administration
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut}>
                   <LogOut className="mr-2 h-4 w-4" /> Se déconnecter

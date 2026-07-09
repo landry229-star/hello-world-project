@@ -3,12 +3,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { listMyOrders } from "@/lib/orders.functions";
 import { getDigitalDownload } from "@/lib/payments.functions";
-import { bootstrapAdmin } from "@/lib/admin.functions";
 import { formatFCFA } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, Package, Loader2, Receipt, ShoppingBag, Wallet, Clock, ShieldCheck, LogOut } from "lucide-react";
-import { toast } from "sonner";
+import { Download, Package, Loader2, Receipt, ShoppingBag, Wallet, Clock, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "@tanstack/react-router";
@@ -21,8 +19,7 @@ export const Route = createFileRoute("/_authenticated/compte")({
 function AccountPage() {
   const listOrdersFn = useServerFn(listMyOrders);
   const downloadFn = useServerFn(getDigitalDownload);
-  const bootstrapFn = useServerFn(bootstrapAdmin);
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   const { data: orders, isLoading } = useQuery({
@@ -33,15 +30,6 @@ function AccountPage() {
   const downloadMutation = useMutation({
     mutationFn: (orderItemId: string) => downloadFn({ data: { orderItemId } }),
     onSuccess: (r) => window.open(r.url, "_blank"),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const bootstrapMutation = useMutation({
-    mutationFn: () => bootstrapFn(),
-    onSuccess: () => {
-      toast.success("Vous êtes maintenant administrateur. Rechargez la page.");
-      setTimeout(() => window.location.reload(), 800);
-    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -74,17 +62,6 @@ function AccountPage() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              {isAdmin && (
-                <Button asChild variant="outline" size="sm" className="rounded-full">
-                  <Link to="/admin"><ShieldCheck className="mr-1 h-4 w-4" /> Console admin</Link>
-                </Button>
-              )}
-              {!isAdmin && (
-                <Button variant="outline" size="sm" className="rounded-full" onClick={() => bootstrapMutation.mutate()} disabled={bootstrapMutation.isPending}>
-                  {bootstrapMutation.isPending && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                  Devenir admin
-                </Button>
-              )}
               <Button variant="ghost" size="sm" className="rounded-full" onClick={handleSignOut}>
                 <LogOut className="mr-1 h-4 w-4" /> Déconnexion
               </Button>
