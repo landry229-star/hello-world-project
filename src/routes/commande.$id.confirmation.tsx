@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, XCircle, Loader2, Receipt, Copy, Smartphone } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Loader2, Receipt, Copy, Smartphone, Upload, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { MERCHANT_ACCOUNTS, type Operator } from "@/lib/payment-config";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/commande/$id/confirmation")({
   head: () => ({ meta: [{ title: "Confirmation de commande — LandryShop" }] }),
@@ -23,6 +24,8 @@ function ConfirmationPage() {
   const getOrderFn = useServerFn(getOrder);
   const submitProofFn = useServerFn(submitPaymentProof);
   const [txRef, setTxRef] = useState("");
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { data: order, isLoading, error, refetch } = useQuery({
     queryKey: ["order", id],
     queryFn: () => getOrderFn({ data: { id } }),
@@ -32,9 +35,29 @@ function ConfirmationPage() {
     },
   });
   const submitMutation = useMutation({
-    mutationFn: () => submitProofFn({ data: { orderId: id, transactionRef: txRef } }),
-    onSuccess: () => { toast.success("Référence envoyée. Nous validons votre paiement sous peu."); refetch(); },
-    onError: (e: Error) => toast.error(e.message),
+    mutationFn: async () => {
+      let proofPath: string | undefined;
+      if (proofFile) {
+        setUploading(true);
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userData.user) throw new Error("Session expirée. Reconnectez-vous.");
+        const ext = proofFile.name.split(".").pop()?.toLowerCase() || "jpg";
+        const path = `${userData.user.id}/${id}-${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("payment-proofs")
+          .upload(path, proofFile, { upsert: false, contentType: proofFile.type });
+        setUploading(false);
+        if (upErr) throw new Error(`Échec envoi du fichier : ${upErr.message}`);
+        proofPath = path;
+      }
+      return submitProofFn({ data: { orderId: id, transactionRef: txRef, proofPath } });
+    },
+    onSuccess: () => {
+      toast.success("Preuve envoyée. Nous validons votre paiement sous peu.");
+      setProofFile(null);
+      refetch();
+    },
+    onError: (e: Error) => { setUploading(false); toast.error(e.message); },
   });
 
   if (isLoading) {
@@ -127,15 +150,51 @@ function ConfirmationPage() {
                 value={txRef}
                 onChange={(e) => setTxRef(e.target.value)}
               />
-              <Button
-                onClick={() => submitMutation.mutate()}
-                disabled={submitMutation.isPending || txRef.trim().length < 3}
-                className="rounded-full"
-              >
-                {submitMutation.isPending && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-                Envoyer
-              </Button>
             </div>
+
+            <Label htmlFor="proof-file" className="mt-3 block text-xs">
+              Capture SMS ou photo de reçu (facultatif mais recommandé)
+            </Label>
+            <label
+              htmlFor="proof-file"
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card px-3 py-4 text-sm text-muted-foreground hover:border-primary hover:text-foreground"
+            >
+              {proofFile ? (
+                <>
+                  <ImageIcon className="h-4 w-4" />
+                  <span className="truncate">{proofFile.name}</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" />
+                  <span>Choisir une image (JPG, PNG, ≤ 5 Mo)</span>
+                </>
+              )}
+            </label>
+            <input
+              id="proof-file"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                if (f && f.size > 5 * 1024 * 1024) {
+                  toast.error("Fichier trop volumineux (max 5 Mo)");
+                  return;
+                }
+                setProofFile(f);
+              }}
+            />
+
+            <Button
+              onClick={() => submitMutation.mutate()}
+              disabled={submitMutation.isPending || uploading || txRef.trim().length < 3}
+              className="w-full rounded-full"
+            >
+              {(submitMutation.isPending || uploading) && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+              {uploading ? "Envoi de la preuve…" : "Envoyer ma preuve de paiement"}
+            </Button>
+
             {order.payment_reference && (
               <p className="text-xs text-muted-foreground">
                 Référence envoyée : <span className="font-mono">{order.payment_reference}</span> — en attente de validation.
