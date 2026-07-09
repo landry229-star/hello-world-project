@@ -32,11 +32,12 @@ export const submitPaymentProof = createServerFn({ method: "POST" })
     if (data.proofPath && !data.proofPath.startsWith(`${userId}/`)) {
       throw new Error("Chemin de preuve invalide");
     }
-    const patch: Record<string, unknown> = { payment_reference: data.transactionRef };
-    if (data.proofPath) patch.payment_proof_path = data.proofPath;
     const { error: upErr } = await supabase
       .from("orders")
-      .update(patch)
+      .update({
+        payment_reference: data.transactionRef,
+        ...(data.proofPath ? { payment_proof_path: data.proofPath } : {}),
+      } as never)
       .eq("id", order.id);
     if (upErr) throw new Error(upErr.message);
     return { ok: true };
@@ -60,15 +61,16 @@ export const adminGetPaymentProofUrl = createServerFn({ method: "POST" })
     if (!role) throw new Error("Accès admin requis");
     const { data: order, error } = await supabase
       .from("orders")
-      .select("payment_proof_path")
+      .select("payment_proof_path" as never)
       .eq("id", data.orderId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!order?.payment_proof_path) throw new Error("Aucune preuve disponible");
+    const proofPath = (order as { payment_proof_path?: string | null } | null)?.payment_proof_path;
+    if (!proofPath) throw new Error("Aucune preuve disponible");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: signed, error: signErr } = await supabaseAdmin.storage
       .from("payment-proofs")
-      .createSignedUrl(order.payment_proof_path, 60 * 10);
+      .createSignedUrl(proofPath, 60 * 10);
     if (signErr || !signed) throw new Error("Lien de preuve indisponible");
     return { url: signed.signedUrl };
   });

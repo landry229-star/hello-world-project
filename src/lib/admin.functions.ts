@@ -105,7 +105,9 @@ export const adminListOrders = createServerFn({ method: "GET" })
     await assertAdmin(context);
     const { data, error } = await context.supabase
       .from("orders")
-      .select("id, total_xof, status, created_at, customer_name, customer_phone, customer_email, payment_operator, payment_reference, payment_proof_path, order_items(id, product_name, quantity, unit_price_xof)")
+      .select(
+        "id, total_xof, status, created_at, customer_name, customer_phone, customer_email, payment_operator, payment_reference, payment_proof_path, order_items(id, product_name, quantity, unit_price_xof)" as never,
+      )
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
