@@ -2,12 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminListOrders, adminUpdateOrderStatus } from "@/lib/admin.functions";
+import { adminGetPaymentProofUrl } from "@/lib/payments.functions";
 import { formatFCFA } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Receipt } from "lucide-react";
+import { Receipt, ImageIcon, CheckCircle2, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/admin/commandes")({
   component: OrdersAdmin,
@@ -19,6 +21,8 @@ function OrdersAdmin() {
   const qc = useQueryClient();
   const listFn = useServerFn(adminListOrders);
   const updateFn = useServerFn(adminUpdateOrderStatus);
+  const proofFn = useServerFn(adminGetPaymentProofUrl);
+  const [loadingProof, setLoadingProof] = useState<string | null>(null);
 
   const { data: orders, isLoading } = useQuery({ queryKey: ["admin-orders"], queryFn: () => listFn() });
 
@@ -27,6 +31,18 @@ function OrdersAdmin() {
     onSuccess: () => { toast.success("Statut mis à jour"); qc.invalidateQueries({ queryKey: ["admin-orders"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const openProof = async (orderId: string) => {
+    setLoadingProof(orderId);
+    try {
+      const { url } = await proofFn({ data: { orderId } });
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setLoadingProof(null);
+    }
+  };
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Chargement…</p>;
   if (!orders || orders.length === 0) {
@@ -43,11 +59,42 @@ function OrdersAdmin() {
               <p className="text-sm font-medium">{o.customer_name}</p>
               <p className="text-xs text-muted-foreground">{o.customer_phone} · {o.customer_email}</p>
               <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString("fr-FR")}</p>
+              {o.payment_reference && (
+                <p className="mt-1 text-xs">
+                  <span className="text-muted-foreground">Réf. transaction :</span>{" "}
+                  <span className="font-mono">{o.payment_reference}</span>
+                </p>
+              )}
             </div>
             <div className="text-right">
               <Badge>{o.payment_operator?.toUpperCase() ?? "—"}</Badge>
               <p className="mt-1 font-display text-lg font-bold">{formatFCFA(o.total_xof)}</p>
-              <div className="mt-1 flex items-center justify-end gap-2">
+              <div className="mt-1 flex flex-wrap items-center justify-end gap-2">
+                {o.payment_proof_path ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => openProof(o.id)}
+                    disabled={loadingProof === o.id}
+                  >
+                    {loadingProof === o.id
+                      ? <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                      : <ImageIcon className="mr-1 h-3 w-3" />}
+                    Voir preuve
+                  </Button>
+                ) : (
+                  <span className="text-xs text-muted-foreground">Aucune preuve</span>
+                )}
+                {o.status === "pending" && (
+                  <Button
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => updateMutation.mutate({ id: o.id, status: "paid" })}
+                  >
+                    <CheckCircle2 className="mr-1 h-3 w-3" /> Marquer payée
+                  </Button>
+                )}
                 <Button asChild variant="outline" size="sm" className="rounded-full">
                   <Link to="/commande/$id/recu" params={{ id: o.id }}>
                     <Receipt className="mr-1 h-3 w-3" /> Reçu

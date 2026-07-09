@@ -15,6 +15,7 @@ export const submitPaymentProof = createServerFn({ method: "POST" })
       .object({
         orderId: z.string().uuid(),
         transactionRef: z.string().trim().min(3).max(60),
+        proofPath: z.string().trim().min(3).max(300).optional(),
       })
       .parse(d),
   )
@@ -27,12 +28,51 @@ export const submitPaymentProof = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!order || order.user_id !== userId) throw new Error("Commande introuvable");
+    // Sécurité : le chemin doit vivre sous le dossier de l'utilisateur
+    if (data.proofPath && !data.proofPath.startsWith(`${userId}/`)) {
+      throw new Error("Chemin de preuve invalide");
+    }
     const { error: upErr } = await supabase
       .from("orders")
-      .update({ payment_reference: data.transactionRef })
+      .update({
+        payment_reference: data.transactionRef,
+        ...(data.proofPath ? { payment_proof_path: data.proofPath } : {}),
+      } as never)
       .eq("id", order.id);
     if (upErr) throw new Error(upErr.message);
     return { ok: true };
+  });
+
+/**
+ * Retourne une URL signée temporaire pour consulter la preuve de paiement
+ * téléversée par un client. Réservé aux administrateurs.
+ */
+export const adminGetPaymentProofUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ orderId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: role } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!role) throw new Error("Accès admin requis");
+    const { data: order, error } = await supabase
+      .from("orders")
+      .select("payment_proof_path" as never)
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    const proofPath = (order as { payment_proof_path?: string | null } | null)?.payment_proof_path;
+    if (!proofPath) throw new Error("Aucune preuve disponible");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed, error: signErr } = await supabaseAdmin.storage
+      .from("payment-proofs")
+      .createSignedUrl(proofPath, 60 * 10);
+    if (signErr || !signed) throw new Error("Lien de preuve indisponible");
+    return { url: signed.signedUrl };
   });
 
 /**
