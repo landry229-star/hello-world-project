@@ -22,6 +22,7 @@ const schema = z.object({
   shipping_address: z.string().trim().optional(),
   shipping_city: z.string().trim().optional(),
   notes: z.string().trim().optional(),
+  payment_provider: z.enum(["manual", "fedapay", "kkiapay"]),
   payment_operator: z.enum(["mtn", "moov", "celtiis"]),
 });
 
@@ -41,6 +42,7 @@ function CheckoutPage() {
     shipping_address: "",
     shipping_city: "",
     notes: "",
+    payment_provider: "manual" as "manual" | "fedapay" | "kkiapay",
     payment_operator: "mtn" as "mtn" | "moov" | "celtiis",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -146,6 +148,35 @@ function CheckoutPage() {
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-4">
+            <h2 className="font-display text-lg font-semibold">Mode de paiement</h2>
+            <p className="text-xs text-muted-foreground">Choisissez comment payer votre commande.</p>
+            <RadioGroup
+              className="mt-3 grid gap-2 sm:grid-cols-3"
+              value={form.payment_provider}
+              onValueChange={(v) => setForm({ ...form, payment_provider: v as any })}
+            >
+              {[
+                { value: "manual", label: "Mobile Money manuel", desc: "MTN / Moov / Celtiis avec preuve" },
+                { value: "fedapay", label: "FedaPay", desc: "Paiement sécurisé en ligne" },
+                { value: "kkiapay", label: "KKiaPay", desc: "Paiement sécurisé en ligne" },
+              ].map((o) => (
+                <Label
+                  key={o.value}
+                  htmlFor={`prov-${o.value}`}
+                  className={`flex cursor-pointer flex-col gap-1 rounded-xl border p-3 text-sm ${form.payment_provider === o.value ? "border-primary bg-primary/5" : "border-border"}`}
+                >
+                  <span className="flex items-center gap-2">
+                    <RadioGroupItem value={o.value} id={`prov-${o.value}`} />
+                    <span className="font-medium">{o.label}</span>
+                  </span>
+                  <span className="pl-6 text-xs text-muted-foreground">{o.desc}</span>
+                </Label>
+              ))}
+            </RadioGroup>
+          </section>
+
+          {form.payment_provider === "manual" && (
+          <section className="rounded-2xl border border-border bg-card p-4">
             <h2 className="font-display text-lg font-semibold">Opérateur Mobile Money</h2>
             <RadioGroup
               className="mt-3 grid gap-2 sm:grid-cols-3"
@@ -168,6 +199,7 @@ function CheckoutPage() {
               ))}
             </RadioGroup>
           </section>
+          )}
         </div>
 
         <aside className="space-y-3 md:sticky md:top-20 md:self-start">
