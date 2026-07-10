@@ -25,6 +25,7 @@ import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin.audit'
+import { Route as ApiPublicWebhooksKkiapayRouteImport } from './routes/api/public/webhooks/kkiapay'
 import { Route as ApiPublicWebhooksFedapayRouteImport } from './routes/api/public/webhooks/fedapay'
 
 const PanierRoute = PanierRouteImport.update({
@@ -109,6 +110,12 @@ const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const ApiPublicWebhooksKkiapayRoute =
+  ApiPublicWebhooksKkiapayRouteImport.update({
+    id: '/api/public/webhooks/kkiapay',
+    path: '/api/public/webhooks/kkiapay',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicWebhooksFedapayRoute =
   ApiPublicWebhooksFedapayRouteImport.update({
     id: '/api/public/webhooks/fedapay',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/commande/$id/recu': typeof CommandeIdRecuRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/webhooks/fedapay': typeof ApiPublicWebhooksFedapayRoute
+  '/api/public/webhooks/kkiapay': typeof ApiPublicWebhooksKkiapayRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -150,6 +158,7 @@ export interface FileRoutesByTo {
   '/commande/$id/recu': typeof CommandeIdRecuRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/api/public/webhooks/fedapay': typeof ApiPublicWebhooksFedapayRoute
+  '/api/public/webhooks/kkiapay': typeof ApiPublicWebhooksKkiapayRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,6 +179,7 @@ export interface FileRoutesById {
   '/commande/$id/recu': typeof CommandeIdRecuRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/api/public/webhooks/fedapay': typeof ApiPublicWebhooksFedapayRoute
+  '/api/public/webhooks/kkiapay': typeof ApiPublicWebhooksKkiapayRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/commande/$id/recu'
     | '/admin/'
     | '/api/public/webhooks/fedapay'
+    | '/api/public/webhooks/kkiapay'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/commande/$id/recu'
     | '/admin'
     | '/api/public/webhooks/fedapay'
+    | '/api/public/webhooks/kkiapay'
   id:
     | '__root__'
     | '/'
@@ -226,6 +238,7 @@ export interface FileRouteTypes {
     | '/commande/$id/recu'
     | '/_authenticated/admin/'
     | '/api/public/webhooks/fedapay'
+    | '/api/public/webhooks/kkiapay'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -239,6 +252,7 @@ export interface RootRouteChildren {
   CommandeIdConfirmationRoute: typeof CommandeIdConfirmationRoute
   CommandeIdRecuRoute: typeof CommandeIdRecuRoute
   ApiPublicWebhooksFedapayRoute: typeof ApiPublicWebhooksFedapayRoute
+  ApiPublicWebhooksKkiapayRoute: typeof ApiPublicWebhooksKkiapayRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -355,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/api/public/webhooks/kkiapay': {
+      id: '/api/public/webhooks/kkiapay'
+      path: '/api/public/webhooks/kkiapay'
+      fullPath: '/api/public/webhooks/kkiapay'
+      preLoaderRoute: typeof ApiPublicWebhooksKkiapayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/fedapay': {
       id: '/api/public/webhooks/fedapay'
       path: '/api/public/webhooks/fedapay'
@@ -408,6 +429,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommandeIdConfirmationRoute: CommandeIdConfirmationRoute,
   CommandeIdRecuRoute: CommandeIdRecuRoute,
   ApiPublicWebhooksFedapayRoute: ApiPublicWebhooksFedapayRoute,
+  ApiPublicWebhooksKkiapayRoute: ApiPublicWebhooksKkiapayRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
