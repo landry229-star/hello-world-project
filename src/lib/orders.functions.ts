@@ -9,6 +9,7 @@ const createOrderSchema = z.object({
   shipping_address: z.string().trim().max(300).optional().nullable(),
   shipping_city: z.string().trim().max(120).optional().nullable(),
   notes: z.string().trim().max(500).optional().nullable(),
+  payment_provider: z.enum(["manual", "fedapay", "kkiapay"]).default("manual"),
   payment_operator: z.enum(["mtn", "moov", "celtiis"]).default("mtn"),
   items: z
     .array(
@@ -62,8 +63,8 @@ export const createOrder = createServerFn({ method: "POST" })
         shipping_address: data.shipping_address ?? null,
         shipping_city: data.shipping_city ?? null,
         notes: data.notes ?? null,
-        payment_provider: "fedapay",
-        payment_operator: data.payment_operator,
+        payment_provider: data.payment_provider,
+        payment_operator: data.payment_provider === "manual" ? data.payment_operator : null,
       })
       .select("id")
       .single();
@@ -92,7 +93,7 @@ export const listMyOrders = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("orders")
-      .select("id, total_xof, status, created_at, payment_operator, order_items(id, product_name, quantity, unit_price_xof, product_type, digital_file_path)")
+      .select("id, total_xof, status, created_at, payment_operator, payment_provider, order_items(id, product_name, quantity, unit_price_xof, product_type, digital_file_path)")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error(error.message);
