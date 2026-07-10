@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { getOrder } from "@/lib/orders.functions";
-import { submitPaymentProof } from "@/lib/payments.functions";
+import { submitPaymentProof, initPayment, verifyPayment } from "@/lib/payments.functions";
 import { formatFCFA } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,8 @@ function ConfirmationPage() {
   const { id } = Route.useParams();
   const getOrderFn = useServerFn(getOrder);
   const submitProofFn = useServerFn(submitPaymentProof);
+  const initPaymentFn = useServerFn(initPayment);
+  const verifyPaymentFn = useServerFn(verifyPayment);
   const [txRef, setTxRef] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -59,6 +61,28 @@ function ConfirmationPage() {
     },
     onError: (e: Error) => { setUploading(false); toast.error(e.message); },
   });
+  const payMutation = useMutation({
+    mutationFn: async () => {
+      const returnUrl = typeof window !== "undefined" ? window.location.href : "https://example.com";
+      return initPaymentFn({ data: { orderId: id, returnUrl } });
+    },
+    onSuccess: (res: { mode: string; redirectUrl: string }) => {
+      if (res.mode === "redirect") {
+        window.location.href = res.redirectUrl;
+      } else if (res.mode === "demo") {
+        toast.success("Paiement simulé (mode démo). Commande marquée payée.");
+        refetch();
+      } else {
+        refetch();
+      }
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const verifyMutation = useMutation({
+    mutationFn: () => verifyPaymentFn({ data: { orderId: id } }),
+    onSuccess: () => refetch(),
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   if (isLoading) {
     return (
@@ -78,6 +102,8 @@ function ConfirmationPage() {
 
   const isPaid = order.status === "paid" || order.status === "delivered" || order.status === "shipped" || order.status === "preparing";
   const isFailed = order.status === "failed" || order.status === "cancelled";
+  const provider = ((order as { payment_provider?: string | null }).payment_provider ?? "manual") as
+    | "manual" | "fedapay" | "kkiapay";
   const operator = (order.payment_operator ?? "mtn") as Operator;
   const account = MERCHANT_ACCOUNTS[operator];
   const copy = (v: string, label: string) => {
@@ -109,7 +135,7 @@ function ConfirmationPage() {
         </p>
       </div>
 
-      {!isPaid && !isFailed && (
+      {!isPaid && !isFailed && provider === "manual" && (
         <div className="mt-6 rounded-2xl border-2 border-primary/30 bg-primary/5 p-5">
           <div className="flex items-center gap-2">
             <Smartphone className="h-5 w-5 text-primary" />
@@ -200,6 +226,39 @@ function ConfirmationPage() {
                 Référence envoyée : <span className="font-mono">{order.payment_reference}</span> — en attente de validation.
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {!isPaid && !isFailed && provider !== "manual" && (
+        <div className="mt-6 rounded-2xl border-2 border-primary/30 bg-primary/5 p-5 text-center">
+          <h2 className="font-display text-lg font-semibold">
+            Paiement {provider === "fedapay" ? "FedaPay" : "KKiaPay"}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Cliquez pour payer en ligne via {provider === "fedapay" ? "FedaPay" : "KKiaPay"}.
+            Vous serez redirigé vers la page de paiement sécurisée.
+          </p>
+          <Button
+            onClick={() => payMutation.mutate()}
+            disabled={payMutation.isPending}
+            size="lg"
+            className="mt-4 rounded-full"
+          >
+            {payMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Payer maintenant
+          </Button>
+          <div className="mt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={() => verifyMutation.mutate()}
+              disabled={verifyMutation.isPending}
+            >
+              {verifyMutation.isPending && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+              J'ai déjà payé — vérifier
+            </Button>
           </div>
         </div>
       )}

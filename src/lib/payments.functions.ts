@@ -91,7 +91,7 @@ export const initPayment = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: order, error } = await supabase
       .from("orders")
-      .select("id, total_xof, status, customer_email, customer_phone, customer_name, payment_operator, user_id")
+      .select("id, total_xof, status, customer_email, customer_phone, customer_name, payment_operator, payment_provider, user_id")
       .eq("id", data.orderId)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -99,6 +99,12 @@ export const initPayment = createServerFn({ method: "POST" })
     if (order.status !== "pending") {
       return { mode: "noop" as const, redirectUrl: data.returnUrl };
     }
+
+    // Dispatch selon le fournisseur choisi à la commande
+    const provider = (order as { payment_provider?: string | null }).payment_provider ?? "fedapay";
+    if (provider === "kkiapay") return initKkiapayInternal(order, data.returnUrl);
+    if (provider === "manual") return { mode: "noop" as const, redirectUrl: data.returnUrl };
+    // fedapay (défaut)
 
     const secret = process.env.FEDAPAY_SECRET_KEY;
     const apiBase = process.env.FEDAPAY_ENV === "live"
@@ -162,6 +168,62 @@ export const initPayment = createServerFn({ method: "POST" })
 
     return { mode: "redirect" as const, redirectUrl: tokenPayload.url };
   });
+
+/**
+ * Initialisation KKiaPay. En l'absence de KKIAPAY_PRIVATE_KEY, on bascule
+ * en mode démo (commande marquée payée) pour tester le flux complet.
+ * En production, KKiaPay utilise principalement un widget côté client ;
+ * ici on expose une URL de checkout hébergée si l'intégration REST est
+ * configurée, sinon le mode démo prend le relais.
+ */
+async function initKkiapayInternal(
+  order: { id: string; total_xof: number; customer_email: string; customer_phone: string; customer_name: string },
+  returnUrl: string,
+) {
+  const privateKey = process.env.KKIAPAY_PRIVATE_KEY;
+  const publicKey = process.env.KKIAPAY_PUBLIC_KEY;
+  if (!privateKey || !publicKey) {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("orders")
+      .update({ status: "paid", payment_reference: `DEMO-KKIA-${order.id.slice(0, 8)}` })
+      .eq("id", order.id);
+    return { mode: "demo" as const, redirectUrl: returnUrl };
+  }
+  // Intégration REST KKiaPay (checkout hébergé). On stocke la référence
+  // et on renvoie l'URL de paiement pour redirection.
+  const isLive = process.env.KKIAPAY_ENV === "live";
+  const apiBase = isLive ? "https://api.kkiapay.me" : "https://api-sandbox.kkiapay.me";
+  const res = await fetch(`${apiBase}/api/v1/payments/create`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-PRIVATE-KEY": privateKey,
+      "X-PUBLIC-KEY": publicKey,
+    },
+    body: JSON.stringify({
+      amount: order.total_xof,
+      currency: "XOF",
+      reason: `Commande ${order.id.slice(0, 8)}`,
+      email: order.customer_email,
+      phone: order.customer_phone,
+      fullname: order.customer_name,
+      callback: returnUrl,
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("KKiaPay create payment failed", res.status, text);
+    throw new Error("Échec de l'initialisation KKiaPay");
+  }
+  const payload = (await res.json()) as { transactionId?: string; url?: string; paymentUrl?: string };
+  const url = payload.url ?? payload.paymentUrl;
+  const ref = payload.transactionId;
+  if (!url || !ref) throw new Error("Réponse KKiaPay invalide");
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin.from("orders").update({ payment_reference: ref }).eq("id", order.id);
+  return { mode: "redirect" as const, redirectUrl: url };
+}
 
 /**
  * Retourne une URL signée temporaire pour télécharger un produit
